@@ -1,7 +1,7 @@
 import datetime
 
 import numpy as np
-from matplotlib import pyplot as plt
+from matplotlib.ticker import MaxNLocator, MultipleLocator
 
 from datetick import datetick
 
@@ -31,6 +31,9 @@ def stackplot(t, y, title=None, style=None, max_gap=None):
     print(f"  y has {len(y)} values")
     _plot(t, y, axes[0], style, max_gap)
     axes[0].set_title(title)
+    if _all_int(y):
+      axes[0].yaxis.set_major_locator(MaxNLocator(integer=True))
+      axes[0].yaxis.set_major_locator(MultipleLocator(1))
     return plt.gcf()
 
   for i in range(0, len(y)):
@@ -60,6 +63,15 @@ def stackplot(t, y, title=None, style=None, max_gap=None):
 
   return plt.gcf()
 
+def _all_int(y):
+
+  y = np.array(y)
+  Ig = ~np.isnan(y)
+  if np.all(np.equal(y[Ig], np.int32(y[Ig]))):
+    return True
+  else:
+    return False
+
 def _plot(t, y, axis, style, max_gap):
 
     if max_gap is not None:
@@ -83,7 +95,7 @@ def _plot(t, y, axis, style, max_gap):
             if np.isnan(y[1]):
                 axis.plot(t[0], y[0], **line_style)
 
-def _type_check(y, _type):
+def _check_type(y, _type):
 
     for i in range(0, len(y)):
         if not isinstance(y[i], _type):
@@ -111,13 +123,13 @@ def _check_and_expand_t(y, t):
 
     if isinstance(y[0], list):
         # y = [list, list, ...] # Each list is plotted on the same axis.
-        _ret = _type_check(y, list)
+        _ret = _check_type(y, list)
         if _ret is not True:
             raise ValueError(f'If y[0] is a list, all elements of y must be lists. Element y[{_ret}] is not a list.')
 
         if isinstance(t[0], list):
             # t = [list, list, ...]
-            _ret = _type_check(t, list)
+            _ret = _check_type(t, list)
             print(f"t has {len(t)} list elements")
             if _ret is not True:
                 raise ValueError(f'If t[0] is a list, all elements of t must be lists. Element t[{_ret}] is not a list.')

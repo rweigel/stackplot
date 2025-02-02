@@ -52,17 +52,22 @@ rcParams = {
 
 def plot(tn, t, y, title, style, max_gap, rcParams):
 
-  title = f"#{tn}: {title}"
+  if isinstance(title, list):
+    title[0] = f"#{tn}: {title[0]}"
+
   with matplotlib.rc_context(rc=rcParams):
     fig = stackplot(t, y, title=title, style=style, max_gap=max_gap)
 
-    plt.draw()
-    if show:
-      plt.show()
-    if save:
-      plt.savefig(f"stackplot_test/stackplot_test_{tn:02d}.png")
+    fig.axes[0].set_ylabel('Voltage (V)')
 
-    return fig
+    if show:
+      plt.draw()
+      fig.show()
+
+    if save:
+      fig.savefig(f"stackplot_test/stackplot_test_{tn:02d}.png")
+
+  return fig
 
 t1 = [datetime(2000,1,1,0,0,20) + timedelta(seconds=i) for i in range(20)]
 y1 = np.arange(0, 20)
@@ -79,9 +84,9 @@ for gap in [18, 10, 1]:
   y2g.pop(gap)
 y2g = np.array(y2g)
 
-# t and y structure
 title = "#1: t = [datetimes] and y = [ints]"
 plot(1, list(t1), list(y1), title, s1, None, rcParams)
+exit()
 
 title = "t = [datetimes] and y = [[ints], [ints]]"
 plot(2, list(t1), [list(y1), list(y1+1)], title, s1, None, rcParams)
@@ -89,6 +94,7 @@ plot(2, list(t1), [list(y1), list(y1+1)], title, s1, None, rcParams)
 title = "t = [[datetimes], [datetimes]] and y = [[ints], [ints]]"
 plot(3, [list(t1), list(t1)], [list(y1), list(y1+1)], title, s1, None, rcParams)
 
+# Multiple y values for second plot and no labels => auto labels
 title = "t = [[datetimes], [datetimes]] and y = [[ints], [ints, ints]]"
 plot(4, [list(t1), list(t2)], [list(y1), [list(y2), list(y2+1)]], title, s1, None, rcParams)
 
@@ -96,13 +102,21 @@ plot(4, [list(t1), list(t2)], [list(y1), [list(y2), list(y2+1)]], title, s1, Non
 title = "t = [datetimes w/gaps] and y = [ints]"
 plot(5, list(t2g), list(y2g), title, s1, timedelta(seconds=1), rcParams)
 
-# Title
+# Multiple titles
 title = "t = [datetimes], y = [[ints], [ints]], title = [str, str]"
 plot(6, list(t1), [list(y1), list(y1+1)], title, s1, None, rcParams)
 
 # Style
 title = "t = [datetimes], y = [[ints], [ints]], style = [dict, dict]"
 plot(7, list(t1), [list(y1), list(y1+1)], title, [s1, s2], None, rcParams)
+
+# Labels
+title = "t = [datetimes], y = [[ints], [ints]], style = [dict, dict], labels = [str, str]"
+s1x = s1.copy()
+s1x['label'] = '$v$'
+s2x = s2.copy()
+s2x['label'] = '$u$'
+plot(8, list(t1), [list(y1), list(y1+1)], title, [s1x, s2x], None, rcParams)
 
 # Spacing of subplots
 _rcParams = rcParams.copy()
@@ -117,14 +131,14 @@ _rcParams['figure.constrained_layout.hspace'] = 0.05
 _rcParams['figure.constrained_layout.w_pad'] = 0.04
 
 title = "h_pad = 0.04 in, hspace = 0.05, w_pad = 0.04 in"
-fig = plot(8, list(t1), [list(y1), list(y1+1)], title, [s1, s2], None, _rcParams)
+plot(9, list(t1), [list(y1), list(y1+1)], title, [s1, s2], None, _rcParams)
 
 _rcParams['figure.constrained_layout.hspace'] = 0.1
 _rcParams['figure.constrained_layout.w_pad'] = 0.1
 title = "h_pad = 0.04 in, hspace = 0.10, w_pad = 0.10 in"
-fig = plot(9, list(t1), [list(y1), list(y1+1)], title, [s1, s2], None, _rcParams)
+plot(10, list(t1), [list(y1), list(y1+1)], title, [s1, s2], None, _rcParams)
 
 _rcParams['figure.constrained_layout.h_pad'] = 0.4
 _rcParams['figure.constrained_layout.w_pad'] = 0.4
 title = "h_pad = 0.40 in, hspace = 0.10, w_pad = 0.40 in"
-fig = plot(10, list(t1), [list(y1), list(y1+1)], title, [s1, s2], None, _rcParams)
+plot(11, list(t1), [list(y1), list(y1+1)], title, [s1, s2], None, _rcParams)
