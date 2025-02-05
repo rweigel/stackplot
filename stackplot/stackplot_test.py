@@ -52,6 +52,8 @@ rcParams = {
 
 def plot(tn, t, y, title, style, max_gap, rcParams):
 
+  print(f"Test #{tn}")
+
   if isinstance(title, list):
     title[0] = f"#{tn}: {title[0]}"
 
@@ -66,6 +68,7 @@ def plot(tn, t, y, title, style, max_gap, rcParams):
 
     if save:
       fig.savefig(f"stackplot_test/stackplot_test_{tn:02d}.png")
+      print(f"Wrote stackplot_test/stackplot_test_{tn:02d}.png")
 
   return fig
 
@@ -84,9 +87,9 @@ for gap in [18, 10, 1]:
   y2g.pop(gap)
 y2g = np.array(y2g)
 
-title = "#1: t = [datetimes] and y = [ints]"
-plot(1, list(t1), list(y1), title, s1, None, rcParams)
-exit()
+
+title = "t = [datetimes] and y = [ints]"
+plot(1, list(t1), list(y1), title, {}, None, rcParams)
 
 title = "t = [datetimes] and y = [[ints], [ints]]"
 plot(2, list(t1), [list(y1), list(y1+1)], title, s1, None, rcParams)

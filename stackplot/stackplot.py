@@ -1,22 +1,20 @@
 import datetime
 
 import numpy as np
+
+from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator, MultipleLocator
 
 from datetick import datetick
 
 def stackplot(t, y, title=None, style=None, max_gap=None):
 
-  from matplotlib import pyplot as plt
+  if not isinstance(y[0], list):
+    y = [y]
 
-  if isinstance(y[0], list):
-    n_stack = len(y)
-    print(f"y has {len(y)} list elements => n_stack = len(y) = {len(y)}")
-    t = _check_and_expand_t(y, t)
-    style = _check_and_expand_style(y, style)
-  else:
-    n_stack = 1
-    print("y has values => n_stack = 1.")
+  n_stack = len(y)
+  t = _check_and_expand_t(y, t)
+  style = _check_and_expand_style(y, style, dict)
 
   if isinstance(title, list) and len(title) > 1 and len(title) != n_stack:
     raise ValueError(f'len(title) = {len(title)} != len(y) = {n_stack}')
@@ -27,15 +25,6 @@ def stackplot(t, y, title=None, style=None, max_gap=None):
   if n_stack == 1:
     axes = [axes]
 
-  if not isinstance(y[0], list):
-    print(f"  y has {len(y)} values")
-    _plot(t, y, axes[0], style, max_gap)
-    axes[0].set_title(title)
-    if _all_int(y):
-      axes[0].yaxis.set_major_locator(MaxNLocator(integer=True))
-      axes[0].yaxis.set_major_locator(MultipleLocator(1))
-    return plt.gcf()
-
   for i in range(0, len(y)):
 
     if isinstance(title, list):
@@ -45,8 +34,6 @@ def stackplot(t, y, title=None, style=None, max_gap=None):
 
     if isinstance(y[i][0], list):
       print(f"  y[{i}] has {len(y[i])} list elements")
-      t[i] = _check_and_expand_t(y[i], t[i])
-      style[i] = _check_and_expand_style(y[i], style[i])
       for j in range(0, len(y[i])):
         if 'label' not in style:
           style[i][j]['label'] = f'$y_{{{j}}}$'
@@ -79,6 +66,10 @@ def _plot(t, y, axis, style, max_gap):
 
     axis.plot(t, y, **style)
 
+    if _all_int(y):
+      axis.yaxis.set_major_locator(MaxNLocator(integer=True))
+      axis.yaxis.set_major_locator(MultipleLocator(1))
+
     line = axis.lines[0]
     line_marker = line.get_marker()
     if max_gap is not None and line_marker == 'None':
@@ -97,57 +88,142 @@ def _plot(t, y, axis, style, max_gap):
 
 def _check_type(y, _type):
 
-    for i in range(0, len(y)):
-        if not isinstance(y[i], _type):
-            return i
+  for i in range(0, len(y)):
+    if not isinstance(y[i], _type):
+      raise ValueError(f'y[{i}] is not a {_type}')
 
-    return True
+  return True
 
-def _check_and_expand_style(y, style):
-    if isinstance(y[0], list):
-        if isinstance(style, dict):
-            _style = []
-            for i in range(0, len(y)):
-                _style.append(style)
-            style = _style
-        else:
-            if len(style) != len(y):
-                raise ValueError(f'len(style) = {len(style)} != len(y) = {len(y)}')
+def _check_and_expand_style(y, style, inner):
+
+  if inner is dict:
+    if style is None:
+      # style = None
+      style = [{}]
+    if isinstance(style, dict):
+      # style = {}
+      style = [style]
+
+  if len(style) == 1 and len(y) > 1:
+    # y = [list, list, ...]
+    # style = [[dict]] => style = [dict, dict, ...]
+    style = style*len(y)
+
+  # y = [list, list, ...]
+  # style = [dict, dict, ...]
+  # or
+  # style = [list of dicts, list of dicts, ...]
+
+  if len(style) != len(y):
+    if len(style) == 1:
+      # y = [list, list, ...]
+      # style = [dict]
+      style = style*len(y)
+      # style = [dict, dict, ...]
     else:
-        if isinstance(style, list):
-            raise ValueError('If y is not a list, style must not be a list. style is a list.')
+      raise ValueError(f'len(style) = {len(style)} != len(y) = {len(y)}')
 
-    return style
+  for i in range(0, len(y)):
+    if isinstance(style[i], inner) and isinstance(y[i][0], list):
+      # y = [[list, list], ...]
+      # style = [dict, ...]
+      style[i] = [style[i]]*len(y[i])
+    if len(style[i]) == 1 and len(y[i]) > 1:
+      # y = [[list, list], ...]
+      # style = [[dict], ...]
+      style[i] = _check_and_expand_style(y[i], style[i][0])
+    if isinstance(style[i], list):
+      # style = [list of dicts, list of dicts, ...]
+      if len(style) != len(y):
+        raise ValueError(f'len(style[{i}]) = {len(style[i])} != len(y[{i}]) = {len(y[i])}')
+
+  return style
+
+def _check_and_expand_style_test():
+  y1 = [[1]]
+  y2 = [[1], [1]]
+  y3 = [[[1], [1]], [1]]
+
+  so = None
+  s = _check_and_expand_style(y1, so, dict)
+  print(so)
+  print(f"  {y1}")
+  print(f"  {s}")
+  s = _check_and_expand_style(y2, so, dict)
+  print(so)
+  print(f"  {y2}")
+  print(f"  {s}")
+  s = _check_and_expand_style(y3, so, dict)
+  print(so)
+  print(f"  {y3}")
+  print(f"  {s}")
+
+  so = {}
+  s = _check_and_expand_style(y1, so, dict)
+  print(so)
+  print(f"  {y1}")
+  print(f"  {s}")
+  s = _check_and_expand_style(y2, so, dict)
+  print(so)
+  print(f"  {y2}")
+  print(f"  {s}")
+  s = _check_and_expand_style(y3, so, dict)
+  print(so)
+  print(f"  {y3}")
+  print(f"  {s}")
+
+  so = [{}]
+  s = _check_and_expand_style(y1, so, dict)
+  print(so)
+  print(f"  {y1}")
+  print(f"  {s}")
+  s = _check_and_expand_style(y2, so, dict)
+  print(so)
+  print(f"  {y2}")
+  print(f"  {s}")
+  s = _check_and_expand_style(y3, so, dict)
+  print(so)
+  print(f"  {y3}")
+  print(f"  {s}")
+
+  so = [{}, {}]
+  s = _check_and_expand_style(y2, so, dict)
+  print(so)
+  print(f"  {y2}")
+  print(f"  {s}")
+
+  so = [[{}, {}], {}]
+  s = _check_and_expand_style(y3, so, dict)
+  print(so)
+  print(f"  {y2}")
+  print(f"  {s}")
 
 def _check_and_expand_t(y, t):
 
-    if isinstance(y[0], list):
-        # y = [list, list, ...] # Each list is plotted on the same axis.
-        _ret = _check_type(y, list)
-        if _ret is not True:
-            raise ValueError(f'If y[0] is a list, all elements of y must be lists. Element y[{_ret}] is not a list.')
+  # y = [list, list, ...] # Each list is plotted on the same axis.
+  _ret = _check_type(y, list)
+  if _ret is not True:
+    raise ValueError(f'If y[0] is a list, all elements of y must be lists. Element y[{_ret}] is not a list.')
 
-        if isinstance(t[0], list):
-            # t = [list, list, ...]
-            _ret = _check_type(t, list)
-            print(f"t has {len(t)} list elements")
-            if _ret is not True:
-                raise ValueError(f'If t[0] is a list, all elements of t must be lists. Element t[{_ret}] is not a list.')
-            if len(t) != len(y):
-                raise ValueError(f'len(t) = {len(t)} != len(y) = {len(y)}')
-        else:
-            print("t has values. Using same t for each in list element in y.")
-            _t = []
-            if len(t) != len(y[0]):
-                raise ValueError(f'len(t) = {len(t)} != len(y[0]) = {len(y[0])}')
-            for i in range(0, len(y)):
-                _t.append(t)
-            t = _t
-    else:
-        if isinstance(t[0], list):
-            raise ValueError('If y is not a list, t must not be a list. t is a list.')
+  if isinstance(t[0], list):
+    # t = [list, list, ...]
+    _ret = _check_type(t, list)
+    print(f"  t has {len(t)} list elements")
+    if _ret is not True:
+      raise ValueError(f'If t[0] is a list, all elements of t must be lists. Element t[{_ret}] is not a list.')
+    if len(t) != len(y):
+      raise ValueError(f'len(t) = {len(t)} != len(y) = {len(y)}')
+  else:
+    print("  t has values. Using same t for each in list element in y.")
+    if len(t) != len(y[0]):
+      raise ValueError(f'len(t) = {len(t)} != len(y[0]) = {len(y[0])}')
+    t = [t]*len(y)
 
-    return t
+  for i in range(0, len(y)):
+    if isinstance(y[i][0], list):
+      t[i] = _check_and_expand_t(y[i], t[i])
+
+  return t
 
 def _insert_nans(t, y, dt_min):
     """Insert NaNs in time series where time difference is greater than dt_min"""
@@ -164,3 +240,6 @@ def _insert_nans(t, y, dt_min):
     _y.append(y[-1])
 
     return _t, _y
+
+if __name__ == '__main__':
+  _check_and_expand_style_test()
