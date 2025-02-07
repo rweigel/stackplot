@@ -49,6 +49,7 @@ rcParams = {
           }
 
 #print(matplotlib.rcParamsDefault)
+#exit()
 
 def plot(tn, t, y, title, style, max_gap, rcParams):
 
@@ -87,7 +88,11 @@ for gap in [18, 10, 1]:
   y2g.pop(gap)
 y2g = np.array(y2g)
 
+#plot(1, [t1[0]], [y1[0]], "title", {}, None, rcParams)
 
+plot(1, list(t1[0:2]), list(y1[0:2]), "title", {}, None, rcParams)
+
+exit()
 title = "t = [datetimes] and y = [ints]"
 plot(1, list(t1), list(y1), title, {}, None, rcParams)
 

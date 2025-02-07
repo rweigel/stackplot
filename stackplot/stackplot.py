@@ -61,30 +61,40 @@ def _all_int(y):
 
 def _plot(t, y, axis, style, max_gap):
 
-    if max_gap is not None:
-        t, y = _insert_nans(t, y, max_gap)
+  if max_gap is not None:
+      t, y = _insert_nans(t, y, max_gap)
 
-    axis.plot(t, y, **style)
+  if len(t) == 1:
+    if 'marker' not in style:
+      style['marker'] = '.'
 
-    if _all_int(y):
-      axis.yaxis.set_major_locator(MaxNLocator(integer=True))
-      axis.yaxis.set_major_locator(MultipleLocator(1))
+  if len(t) < 10:
+    if 'marker' not in style:
+      style['marker'] = '.'
 
-    line = axis.lines[0]
-    line_marker = line.get_marker()
-    if max_gap is not None and line_marker == 'None':
-        line_width = line.get_linewidth()
-        if len(y) > 3:
-            line_style = {
-                            "marker": '.',
-                            "markersize": 1.5*line_width,
-                            "color": line.get_color()
-                        }
-            # If second or second to last value is NaN, plot a marker at that point.
-            if np.isnan(y[-2]):
-                axis.plot(t[-1], y[-1], **line_style)
-            if np.isnan(y[1]):
-                axis.plot(t[0], y[0], **line_style)
+  axis.plot(t, y, **style)
+
+  if _all_int(y):
+    axis.yaxis.set_major_locator(MaxNLocator(integer=True))
+    axis.yaxis.set_major_locator(MultipleLocator(1))
+
+  line = axis.lines[0]
+  line_marker = line.get_marker()
+  line_width = line.get_linewidth()
+  print(f"  line_marker = {line_marker}")
+  if max_gap is not None and line_marker == 'None':
+      line_width = line.get_linewidth()
+      if len(y) > 3:
+          line_style = {
+                          "marker": '.',
+                          "markersize": 1.5*line_width,
+                          "color": line.get_color()
+                      }
+          # If second or second to last value is NaN, plot a marker at that point.
+          if np.isnan(y[-2]):
+              axis.plot(t[-1], y[-1], **line_style)
+          if np.isnan(y[1]):
+              axis.plot(t[0], y[0], **line_style)
 
 def _check_type(y, _type):
 
@@ -140,63 +150,60 @@ def _check_and_expand_style(y, style, inner):
   return style
 
 def _check_and_expand_style_test():
+
   y1 = [[1]]
   y2 = [[1], [1]]
   y3 = [[[1], [1]], [1]]
 
   so = None
   s = _check_and_expand_style(y1, so, dict)
-  print(so)
-  print(f"  {y1}")
-  print(f"  {s}")
+  print(f"y = {y1}; style = {so} => {s}")
+  assert(s == [{}])
+
   s = _check_and_expand_style(y2, so, dict)
-  print(so)
-  print(f"  {y2}")
-  print(f"  {s}")
+  print(f"y = {y2}; style = {so} => {s}")
+  assert(s == [{}, {}])
   s = _check_and_expand_style(y3, so, dict)
-  print(so)
-  print(f"  {y3}")
-  print(f"  {s}")
+  print(f"y = {y3}; style = {so} => {s}")
+  assert(s == [[{}, {}], {}])
+
 
   so = {}
   s = _check_and_expand_style(y1, so, dict)
-  print(so)
-  print(f"  {y1}")
-  print(f"  {s}")
+  print(f"y = {y1}; style = {so} => {s}")
+  assert(s == [{}])
+
   s = _check_and_expand_style(y2, so, dict)
-  print(so)
-  print(f"  {y2}")
-  print(f"  {s}")
+  print(f"y = {y2}; style = {so} => {s}")
+  assert(s == [{}, {}])
+
   s = _check_and_expand_style(y3, so, dict)
-  print(so)
-  print(f"  {y3}")
-  print(f"  {s}")
+  print(f"y = {y3}; style = {so} => {s}")
+  assert(s == [[{}, {}], {}])
+
 
   so = [{}]
   s = _check_and_expand_style(y1, so, dict)
-  print(so)
-  print(f"  {y1}")
-  print(f"  {s}")
+  print(f"y = {y1}; style = {so} => {s}")
+  assert(s == [{}])
+
   s = _check_and_expand_style(y2, so, dict)
-  print(so)
-  print(f"  {y2}")
-  print(f"  {s}")
+  print(f"y = {y2}; style = {so} => {s}")
+  assert(s == [{}, {}])
+
   s = _check_and_expand_style(y3, so, dict)
-  print(so)
-  print(f"  {y3}")
-  print(f"  {s}")
+  print(f"y = {y3}; style = {so} => {s}")
+  assert(s == [[{}, {}], {}])
 
   so = [{}, {}]
   s = _check_and_expand_style(y2, so, dict)
-  print(so)
-  print(f"  {y2}")
-  print(f"  {s}")
+  print(f"y = {y2}; style = {so} => {s}")
+  assert(s == [{}, {}])
 
   so = [[{}, {}], {}]
   s = _check_and_expand_style(y3, so, dict)
-  print(so)
-  print(f"  {y2}")
-  print(f"  {s}")
+  print(f"y = {y3}; style = {so} => {s}")
+  assert(s == [[{}, {}], {}])
 
 def _check_and_expand_t(y, t):
 
