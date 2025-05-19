@@ -1,8 +1,6 @@
 import matplotlib
 from matplotlib import pyplot as plt
-
 from datetime import datetime, timedelta
-
 import numpy as np
 
 from stackplot import stackplot
@@ -88,11 +86,6 @@ for gap in [18, 10, 1]:
   y2g.pop(gap)
 y2g = np.array(y2g)
 
-#plot(1, [t1[0]], [y1[0]], "title", {}, None, rcParams)
-
-plot(1, list(t1[0:2]), list(y1[0:2]), "title", {}, None, rcParams)
-
-exit()
 title = "t = [datetimes] and y = [ints]"
 plot(1, list(t1), list(y1), title, {}, None, rcParams)
 
@@ -109,6 +102,9 @@ plot(4, [list(t1), list(t2)], [list(y1), [list(y2), list(y2+1)]], title, s1, Non
 # Gaps
 title = "t = [datetimes w/gaps] and y = [ints]"
 plot(5, list(t2g), list(y2g), title, s1, timedelta(seconds=1), rcParams)
+
+title = "t = [[datetimes], [datetimes]] and y = [[ints], [ints]]"
+plot(6, [list(t1[0:10]), list(t1[10:])], [list(y1[0:10]), list(y1[10:]+1)], title, s1, None, rcParams)
 
 # Multiple titles
 title = "t = [datetimes], y = [[ints], [ints]], title = [str, str]"
